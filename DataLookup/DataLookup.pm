@@ -1,4 +1,4 @@
-package DataLookup;
+package DBIx::DataLookup;
 
 use 5.006;
 use strict;
@@ -16,19 +16,14 @@ our @ISA = qw(Exporter);
 # This allows declaration	use DataLookup ':all';
 # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
 # will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(
-	
-) ] );
+our %EXPORT_TAGS = ( ':all' => [ qw() ],
+		     ':default' => [ qw(add_key_mapping get get_hashref) ]);
 
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{':default'} } );
 
-our @EXPORT = qw(	
-);
+our @EXPORT = @{ $EXPORT_TAGS{':default'} };
 
-our $VERSION = '0.01';
-
-# Preloaded methods go here.
-
+our $VERSION = '0.02';
 
 # PLAN:
 # Instantiates an object that will store database data
@@ -107,7 +102,8 @@ sub new {
   # use the first field by default.
   my $ar_fields = $sth->{NAME};
 
-  $ar_keys ||= [$ar_fields->[0]]; # first field as key by default.
+  # first field as key by default.
+  $ar_keys ||= [$ar_fields->[0]]; 
 
   my $i = 0;
   %{$self->{table}{fields}} = map {$_ => $i++} @$ar_fields;  
@@ -315,11 +311,83 @@ DBIx::DataLookup objects. Later in the code, you would simply invoke the get_has
 method of your DBIx::DataLookup object(s) to retrieve records matching certain key 
 values. 
 
-This module also supports alternative key mapping.  For example, if you have to
+This module also supports alternative key mapping, which is not offered by any 
+other module.  A user of this module may add alternative key mappings at run-time
+to be able to link certain records with specific keys etc. For example, if you have to
 deal with data supplied to you by various providers (such as news/weather syndicates etc),
 there's a chance for minor irregularities in otherwise similar data (say, two vendors
 use different identification codes for one theater ...)  So, when you are talking of only a dozen
 (or fewer) such differing keys, key mapping offered by this module becomes quite handy.
+
+=head2 Methods
+
+=over 4
+
+=item B<new(%vars)>
+
+ my $lookup_table = new DBIx::DataLookup(dbh => reference to a database handle, 
+                                         statement => SQL statement, 
+                                         [keys => reference to an array of query key fields);
+
+This constructor will create a new data lookup object for any data 
+retrieved by the 'SQL statement' from a data source which the 'dbh'
+database handle object was created for.  By default, the 'keys' 
+parameter may be omitted in which case the first field of the 'SQL 
+query' will be used as the 'lookup' field (you may look up data
+only via that field's values).
+ 
+For example, 
+
+ my $employee_table = new DBIx::DataLookup(dbh => $dbh,
+					 statement => qq{ select first_name, last_name, phone
+							  from employee
+							  where type = 'temp' });
+
+
+Or, you may also explicitly specify a list of keys to be used:
+
+ my $employee_table = new DBIx::DataLookup(dbh => $dbh,
+					 statement => qq{ select first_name, last_name, phone
+							  from employee
+							  where type = 'temp' }
+                                         keys => ['last_name','phone']); 
+
+
+=item B<add_key_mapping($key_field, $key_value, $map_to_value)>
+
+$key_field    -- name of a key field.
+$key_value    -- new value for this key field.
+$map_to_value -- existing value of this key field.
+
+Maps new key field value to existing key field value.  
+This is useful for associating additional key values 
+with existing records during run-time.  
+
+Example,
+
+ $country_table->add_key_mapping('countryname','ENGLAND','United Kingdom');
+
+
+=item B<get($key_field, $key_value)>
+
+$key_field -- name of a key field.
+$key_value -- value of the key field.
+
+Returns one or more record(s) with matching key field
+value.  Each record is represented by an array of values.
+Here, values are ordered similarly to how the corresponding
+fields appear in the 'SQL statement' that was used
+in the new().
+
+
+=item B<get_hashref($key_field, $key_value)>
+
+Similar to get() with the only disctinction that
+instead of returning an array of field values
+for each matched record, this method will return
+a hash structure where keys are field names,
+and values are their respective values.
+
 
 =head1 TODO
 
@@ -337,13 +405,16 @@ use different identification codes for one theater ...)  So, when you are talkin
 
 3. Write more POD!
 
-=head2 EXPORT
 
-None.
+=head1 EXPORT
+
+:default - add_key_mapping(), get(), get_hashref()
+
 
 =head1 AUTHOR
 
 Vladimir Bogdanov E<lt>b_vlad@telus.netE<gt>
+
 
 =head1 SEE ALSO
 
