@@ -319,17 +319,7 @@ This module also supports alternative key mapping.  For example, if you have to
 deal with data supplied to you by various providers (such as news/weather syndicates etc),
 there's a chance for minor irregularities in otherwise similar data (say, two vendors
 use different identification codes for one theater ...)  So, when you are talking of only a dozen
-(or fewer) distinct 
-
-I should point out that alternative key mapping is another distinctive feature of this module. 
-At work, I have to deal with data coming from various vendors (feed providers etc - as most
-of you in the web development field would know) and more often than not I would find a few key
-values (record indexes.. e.g. such as city code to indentify a city record) that are different 
-for every vendor. When you are talking of only a dozen (or fewer) distinct key values, it's more
-efficient to use this module's add_key_mapping() method to bridge the two key values (the one 
-you have in your database with that provided by your feed supplier). Certainly, if you have a 
-larger set of differing keys, I guess you'd be rather looking at implementing special reference
-tables; however, this is left for you to deal with on your own merit ;). 
+(or fewer) such differing keys, key mapping offered by this module becomes quite handy.
 
 =head1 TODO
 
@@ -357,7 +347,7 @@ Vladimir Bogdanov E<lt>b_vlad@telus.netE<gt>
 
 =head1 SEE ALSO
 
-L<perl>.
+L<DBI>.
 
 =cut
 
